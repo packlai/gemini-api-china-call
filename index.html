@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gemini API 国内调用教程：接口地址、API Key 与 Python 示例</title>
+  <meta name="description" content="Gemini API 国内怎么调用？本文介绍通过大模型 API 中转站接入 Gemini 的方法，讲解 API Key、接口地址和模型名称配置，提供 cURL 与 Python 调用示例，并整理 401、404、429 和请求超时的排查方法。">
+  <meta name="keywords" content="Gemini API国内调用,Gemini API调用,Gemini国内调用,Gemini API国内,Gemini接口调用,Gemini API接入,Gemini API中转,Gemini中转站,Gemini API Key,Gemini Python调用,Gemini API教程,Google Gemini API,大模型API中转站">
+  <meta name="author" content="作者名称">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://quanzil.com/articles/how-to-call-gpt-api-in-china.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="ai api">
+  <meta property="og:title" content="Gemini API 国内调用教程：接口地址、API Key 与 Python 示例">
+  <meta property="og:description" content="Gemini API 国内怎么调用？本文介绍通过大模型 API 中转站接入 Gemini 的方法，讲解 API Key、接口地址和模型名称配置，提供 cURL 与 Python 调用示例，并整理 401、404、429 和请求超时的排查方法。">
+  <meta property="og:url" content="https://quanzil.com/articles/how-to-call-gpt-api-in-china.html">
+  <meta property="og:image" content="https://quanzil.com/images/article-cover.jpg">
+  <meta property="og:locale" content="zh_CN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Gemini API 国内调用教程：接口地址、API Key 与 Python 示例">
+  <meta name="twitter:description" content="Gemini API 国内怎么调用？本文介绍通过大模型 API 中转站接入 Gemini 的方法，讲解 API Key、接口地址和模型名称配置，提供 cURL 与 Python 调用示例，并整理 401、404、429 和请求超时的排查方法。">
+  <meta name="twitter:image" content="https://quanzil.com/images/article-cover.jpg">
+
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --surface: #fff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --code-bg: #111827;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      line-height: 1.8;
+    }
+    a { color: var(--accent); }
+    .site-header {
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.97);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+    }
+    .header-inner, .page, .site-footer {
+      width: min(100% - 32px, 1100px);
+      margin: 0 auto;
+    }
+    .header-inner {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: max-content;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, .2);
+    }
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .brand {
+      color: var(--text);
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .brand-tagline {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+      margin-right: 22px;
+    }
+    .nav-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 11px;
+      border-radius: 7px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      white-space: nowrap;
+      transition: color .2s ease, background .2s ease;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: #f1f5f9;
+      color: var(--text);
+    }
+    .page { padding: 56px 0 72px; }
+    .article {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: clamp(24px, 5vw, 64px);
+      box-shadow: 0 8px 30px rgba(15, 23, 42, .04);
+    }
+    .article-header { margin-bottom: 40px; }
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    h1 {
+      margin: 0 0 16px;
+      color: #111827;
+      font-size: clamp(30px, 5vw, 46px);
+      line-height: 1.25;
+      letter-spacing: -.02em;
+    }
+    .summary {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 17px;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header-target {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(37, 99, 235, .18);
+      transition: background .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .header-target:hover {
+      background: #1d4ed8;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(37, 99, 235, .25);
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .markdown-body { font-size: 17px; }
+    .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+      margin: 2em 0 .7em;
+      color: #111827;
+      line-height: 1.35;
+    }
+    .markdown-body h2 {
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+      font-size: 28px;
+    }
+    .markdown-body h3 { font-size: 22px; }
+    .markdown-body p, .markdown-body ul, .markdown-body ol, .markdown-body blockquote { margin: 1em 0; }
+    .markdown-body img { max-width: 100%; height: auto; border-radius: 8px; }
+    .markdown-body blockquote {
+      margin-left: 0;
+      padding: 12px 18px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-light);
+      color: #374151;
+    }
+    .markdown-body code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #f3f4f6;
+      font-size: .9em;
+    }
+    .markdown-body pre {
+      overflow-x: auto;
+      padding: 18px;
+      border-radius: 8px;
+      background: var(--code-bg);
+      color: #e5e7eb;
+      line-height: 1.6;
+    }
+    .markdown-body pre code { padding: 0; background: transparent; color: inherit; }
+    .markdown-body table { display: block; overflow-x: auto; border-collapse: collapse; width: 100%; }
+    .markdown-body th, .markdown-body td { padding: 9px 12px; border: 1px solid var(--line); text-align: left; }
+    .markdown-body th { background: #f9fafb; }
+    .site-footer { padding: 24px 0 48px; color: var(--muted); font-size: 13px; text-align: center; }
+    @media (max-width: 640px) {
+      .header-inner { min-height: 56px; }
+      .brand-tagline, .main-nav { display: none; }
+      .page { padding: 24px 0 40px; }
+      .article { padding: 22px 18px; }
+      .markdown-body { font-size: 16px; }
+      .header-actions { gap: 10px; }
+      .header-target { padding: 8px 11px; font-size: 13px; }
+      .brand-mark { width: 31px; height: 31px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a id="site-brand" class="brand-wrap" href="https://quanzil.com/" aria-label="返回网站首页">
+        <span id="brand-mark" class="brand-mark">AI</span>
+        <span class="brand-copy">
+          <span id="brand-name" class="brand">API</span>
+          <span id="brand-tagline" class="brand-tagline">让技术更简单</span>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="主导航">
+        <a id="nav-home" class="nav-link active" href="https://quanzil.com/">首页</a>
+        <a id="nav-articles" class="nav-link" href="https://quanzil.com/pricing">模型价格</a>
+        <a id="nav-docs" class="nav-link" href="https://docs.quanzil.com/">API 文档</a>
+        <a id="nav-pricing" class="nav-link" href="https://quanzil.com/news/focus">文章资讯</a>
+      </nav>
+      <div class="header-actions">
+        <a id="header-target" class="header-target" href="https://quanzil.com/" target="_blank" rel="noopener noreferrer">进入 API 中转站 →</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <article class="article" itemscope itemtype="https://schema.org/Article">
+      <header class="article-header">
+        <p class="eyebrow">原创文章</p>
+        <h1 id="article-title" itemprop="headline">Gemini API 国内调用教程：接口地址、API Key 与 Python 示例</h1>
+        <p id="article-summary" class="summary" itemprop="description">Gemini API 国内怎么调用？本文介绍通过大模型 API 中转站接入 Gemini 的方法，讲解 API Key、接口地址和模型名称配置，提供 cURL 与 Python 调用示例，并整理 401、404、429 和请求超时的排查方法。</p>
+        <div class="meta">
+          <span>作者：<span id="article-author" itemprop="author">ai agent</span></span>
+          <span>发布时间：<time id="publish-date" itemprop="datePublished" datetime="2026-09-18">2026年09月18日</time></span>
+          <span>更新时间：<time id="update-date" itemprop="dateModified"></time></span>
+        </div>
+      </header>
+
+      <!-- 👇 Python 会直接将转好的 HTML 注入到这个 div 中 -->
+      <div id="markdown-content" class="markdown-body" itemprop="articleBody">
+<p>想在自己的项目里使用 Gemini，第一步通常就是搜索“<strong>Gemini API 国内调用</strong>”或“<strong>Gemini API 调用教程</strong>”。</p>
+<p>但真正开始接入时，很多开发者会卡在几个具体问题上：</p>
+<ul>
+<li>API Key 从哪里获取？</li>
+<li>请求地址应该填什么？</li>
+<li>Gemini 模型名称怎么写？</li>
+<li>已有的 OpenAI 接口代码能不能复用？</li>
+<li>为什么请求返回 401、404 或 429？</li>
+</ul>
+<p>如果你计划通过 <strong>大模型 API 中转站</strong> 接入 Gemini，最小调用流程通常只需要三个核心配置：<strong>API Key、请求地址和模型 ID</strong>。</p>
+<p>本文以支持 OpenAI Chat Completions 兼容格式的中转接口为例，带你完成一次 Gemini API 请求，再说明如何接入实际业务。</p>
+<p><strong>大模型 API 中转服务入口：</strong></p>
+<blockquote>
+<p>平台地址：<a href="https://quanzil.com">https://quanzil.com</a></p>
+<p>平台地址：<a href="https://quanzil.net">https://quanzil.net</a></p>
+</blockquote>
+<p>具体接口地址、可用模型、价格与功能支持范围，请以平台后台和开发文档为准。本文代码中的占位内容需要替换后再运行。</p>
+<hr />
+<h2>Gemini API 国内调用有哪些方式</h2>
+<p>接入 Gemini 时，可以根据自己的项目环境和需求选择接口方式。</p>
+<table>
+<thead>
+<tr>
+<th>接入方式</th>
+<th>需要准备的内容</th>
+<th>适合的情况</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gemini 官方接口</td>
+<td>官方凭据、对应服务地址和可用访问环境</td>
+<td>需要直接使用官方服务与原生功能</td>
+</tr>
+<tr>
+<td>Gemini 中转 API</td>
+<td>中转平台 Key、接口地址和支持的模型 ID</td>
+<td>希望通过中转服务接入 Gemini</td>
+</tr>
+<tr>
+<td>OpenAI 兼容中转接口</td>
+<td>平台 Key、Base URL 和兼容模型配置</td>
+<td>已有 OpenAI 格式代码，或需要统一接入多个模型</td>
+</tr>
+</tbody>
+</table>
+<p>选择官方服务时，需要确认其当前支持的地区、账户条件和使用要求。</p>
+<p>选择中转服务时，需要确认平台是否支持你需要的 Gemini 模型和功能。<strong>中转平台的可用性、功能和计费规则由该平台决定，不能直接套用官方服务的说明。</strong></p>
+<p>本文重点介绍第三种方式：通过 OpenAI 兼容中转接口调用 Gemini。</p>
+<p>如果你还不熟悉 API 中转，可以先阅读：</p>
+<ul>
+<li><a href="/blog/api-middleman/what-is-api-middleman.html">API中转站是什么？一篇看懂大模型 API 中转的作用与适用场景</a></li>
+<li><a href="/blog/api-middleman/api-middleman-vs-official-api.html">大模型 API 中转和官方 API 有什么区别？开发者如何选择</a></li>
+</ul>
+<hr />
+<h2>调用前先确认三个配置</h2>
+<p>很多 Gemini API 调用失败，并不是代码逻辑有问题，而是配置没有对应起来。</p>
+<h3>API Key：确认使用哪个平台的凭据</h3>
+<p>使用中转接口时，应填写中转平台签发的 API Key。</p>
+<p>不要把官方 Key 与中转地址混用，也不要把其他平台的 Key 填进当前平台的接口配置。</p>
+<p>通过本文使用的兼容接口发送请求时，鉴权通常采用：</p>
+<pre><code class="language-text">Authorization: Bearer YOUR_API_KEY
+</code></pre>
+<p>API Key 建议放在服务端环境变量中，避免出现在浏览器前端或公开代码仓库里。</p>
+<h3>请求地址：区分 Base URL 和完整接口地址</h3>
+<p>平台文档可能同时提供基础地址和具体接口路径。</p>
+<p>例如：</p>
+<pre><code class="language-text">Base URL：
+https://your-api-domain.com/v1
+
+完整聊天接口地址：
+https://your-api-domain.com/v1/chat/completions
+</code></pre>
+<p>以上域名仅用于说明结构，不是真实调用地址。</p>
+<p>通常：</p>
+<ul>
+<li>用 cURL 或 Python <code>requests</code> 直接发请求，需要完整接口地址。</li>
+<li>用 OpenAI SDK，需要按平台文档填写 Base URL。</li>
+</ul>
+<p>如果地址路径重复，或者缺少必要路径，请求可能返回 <code>404</code>。</p>
+<h3>模型 ID：从平台支持列表复制</h3>
+<p><code>model</code> 字段决定请求使用哪个模型。</p>
+<p>模型 ID 应从平台当前支持列表中复制，不建议根据产品名称自行猜测。</p>
+<p>同一个系列可能存在不同版本，平台还可能使用自己的模型别名。接入时应同时确认：</p>
+<ul>
+<li>模型是否可用</li>
+<li>当前 Key 是否具有调用权限</li>
+<li>是否支持 Chat Completions 兼容接口</li>
+<li>是否支持所需的文本、图片或其他功能</li>
+</ul>
+<hr />
+<h2>第一步：设置 Gemini API 调用配置</h2>
+<p>下面通过环境变量管理 Key、接口地址和模型名称。</p>
+<p>在 macOS 或 Linux 终端中执行：</p>
+<pre><code class="language-bash">export AI_API_KEY=&quot;替换为你的中转平台API Key&quot;
+export AI_CHAT_URL=&quot;替换为平台提供的完整聊天接口地址&quot;
+export GEMINI_MODEL=&quot;替换为平台支持的Gemini模型ID&quot;
+</code></pre>
+<p>如果使用 Windows PowerShell：</p>
+<pre><code class="language-powershell">$env:AI_API_KEY=&quot;替换为你的中转平台API Key&quot;
+$env:AI_CHAT_URL=&quot;替换为平台提供的完整聊天接口地址&quot;
+$env:GEMINI_MODEL=&quot;替换为平台支持的Gemini模型ID&quot;
+</code></pre>
+<p>这里的 <code>AI_CHAT_URL</code> 应填写完整接口地址，而不是只有域名。</p>
+<p>环境变量名称由项目自行约定。后续代码使用什么名称，配置时就需要保持一致。</p>
+<hr />
+<h2>第二步：用 cURL 测试 Gemini API</h2>
+<p>在编写业务代码之前，建议先用 cURL 发起一次最小请求。</p>
+<p>下面的示例适用于 Bash，并使用 Python 生成 JSON 请求体，避免手动拼接模型名称时出现格式问题：</p>
+<pre><code class="language-bash">python - &lt;&lt;'PY' | curl --silent --show-error \
+  --connect-timeout 10 \
+  --max-time 90 \
+  &quot;$AI_CHAT_URL&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -H &quot;Authorization: Bearer $AI_API_KEY&quot; \
+  --data-binary @-
+import json
+import os
+
+payload = {
+    &quot;model&quot;: os.environ[&quot;GEMINI_MODEL&quot;],
+    &quot;messages&quot;: [
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;请用一句话说明 Gemini API 可以做什么。&quot;
+        }
+    ]
+}
+
+print(json.dumps(payload, ensure_ascii=False))
+PY
+</code></pre>
+<p>如果接口正常，通常会返回包含模型回复的 JSON。</p>
+<p>在 Chat Completions 兼容响应中，文本内容一般位于：</p>
+<pre><code class="language-text">choices[0].message.content
+</code></pre>
+<p>具体响应结构仍需以平台文档为准。</p>
+<p>第一次测试时，建议只发送 <code>model</code> 和 <code>messages</code>。基础请求成功后，再添加流式输出、生成参数或其他功能。</p>
+<hr />
+<h2>第三步：用 Python 调用 Gemini API</h2>
+<p>如果你想把 Gemini 接入网站后端、机器人或自动化脚本，可以先使用 Python <code>requests</code>。</p>
+<p>安装依赖：</p>
+<pre><code class="language-bash">python -m pip install requests
+</code></pre>
+<p>创建 <code>gemini_api_demo.py</code>：</p>
+<pre><code class="language-python">import os
+import requests
+
+required_vars = [
+    &quot;AI_API_KEY&quot;,
+    &quot;AI_CHAT_URL&quot;,
+    &quot;GEMINI_MODEL&quot;,
+]
+
+missing_vars = [
+    name for name in required_vars
+    if not os.environ.get(name)
+]
+
+if missing_vars:
+    raise RuntimeError(
+        &quot;请先配置环境变量：&quot; + &quot;, &quot;.join(missing_vars)
+    )
+
+headers = {
+    &quot;Content-Type&quot;: &quot;application/json&quot;,
+    &quot;Authorization&quot;: f&quot;Bearer {os.environ['AI_API_KEY']}&quot;,
+}
+
+payload = {
+    &quot;model&quot;: os.environ[&quot;GEMINI_MODEL&quot;],
+    &quot;messages&quot;: [
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;请列出 Gemini API 的三个常见应用场景。&quot;
+        }
+    ],
+}
+
+try:
+    response = requests.post(
+        os.environ[&quot;AI_CHAT_URL&quot;],
+        headers=headers,
+        json=payload,
+        timeout=(10, 90),
+    )
+
+    response.raise_for_status()
+    data = response.json()
+
+    choices = data.get(&quot;choices&quot;)
+    if not choices:
+        raise RuntimeError(
+            &quot;响应中没有 choices，请检查平台的返回格式。&quot;
+        )
+
+    print(choices[0][&quot;message&quot;].get(&quot;content&quot;))
+
+except requests.exceptions.Timeout:
+    print(&quot;请求超时，请检查网络、服务状态和任务长度。&quot;)
+
+except requests.exceptions.HTTPError as exc:
+    print(f&quot;接口返回 HTTP 错误：{exc.response.status_code}&quot;)
+    print(&quot;请结合平台返回的错误详情排查配置、权限或额度。&quot;)
+
+except requests.exceptions.RequestException as exc:
+    print(f&quot;请求失败：{exc}&quot;)
+
+except ValueError:
+    print(&quot;接口未返回有效 JSON，请检查响应格式。&quot;)
+</code></pre>
+<p>运行：</p>
+<pre><code class="language-bash">python gemini_api_demo.py
+</code></pre>
+<p>如果输出了模型回复，说明这次 Gemini API 调用已经成功。</p>
+<p>示例中的超时设置分别限制连接等待和响应读取等待。正式项目应根据业务延迟要求调整，而不是一味增加超时时间。</p>
+<hr />
+<h2>已有 OpenAI SDK 项目怎么接入 Gemini</h2>
+<p>如果你的项目已经使用 OpenAI SDK，可以在平台支持兼容调用的情况下复用基础请求逻辑。</p>
+<p>先安装依赖：</p>
+<pre><code class="language-bash">python -m pip install --upgrade openai
+</code></pre>
+<p>另外配置平台提供的 Base URL：</p>
+<pre><code class="language-bash">export AI_BASE_URL=&quot;替换为平台提供的Base URL&quot;
+</code></pre>
+<p>调用示例：</p>
+<pre><code class="language-python">import os
+from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.environ[&quot;AI_API_KEY&quot;],
+    base_url=os.environ[&quot;AI_BASE_URL&quot;],
+    timeout=90.0,
+    max_retries=2,
+)
+
+response = client.chat.completions.create(
+    model=os.environ[&quot;GEMINI_MODEL&quot;],
+    messages=[
+        {
+            &quot;role&quot;: &quot;user&quot;,
+            &quot;content&quot;: &quot;请介绍如何把 Gemini 接入智能客服。&quot;
+        }
+    ],
+)
+
+print(response.choices[0].message.content)
+</code></pre>
+<p>注意：这里使用的是 <code>AI_BASE_URL</code>，不是前面用于直接 HTTP 请求的 <code>AI_CHAT_URL</code>。</p>
+<p>基础文本请求可以复用，并不意味着所有高级功能都能直接迁移。工具调用、结构化输出、图片输入等能力，需要按平台和具体模型的支持情况验证。</p>
+<p>更详细的 SDK 接入说明可以阅读：</p>
+<ul>
+<li><a href="/blog/gemini-api/gemini-openai-sdk-python.html">Gemini API 怎么用 OpenAI SDK 调用？Python 接入与中转配置教程</a></li>
+</ul>
+<hr />
+<h2>Gemini API 国内调用失败怎么排查</h2>
+<p>排查时建议同时查看 HTTP 状态码和接口返回的错误内容。</p>
+<h3>401：鉴权失败</h3>
+<p>常见原因包括：</p>
+<ul>
+<li>API Key 填写错误</li>
+<li>Key 已失效</li>
+<li>请求头缺少鉴权信息</li>
+<li>程序没有读取到环境变量</li>
+<li>Key 与请求平台不匹配</li>
+</ul>
+<p>优先检查 Key 和请求地址的对应关系，再检查 Key 的状态。</p>
+<h3>403：权限或访问受到限制</h3>
+<p>可能与模型权限、账户状态、访问策略或地区要求有关。</p>
+<p>如果是模型权限问题，需要确认当前账户是否可以调用该模型；如果涉及服务访问要求，应按服务提供商的说明处理。</p>
+<h3>404：地址或资源不存在</h3>
+<p>先检查完整接口地址、Base URL 和模型 ID。</p>
+<p>尤其要注意：</p>
+<ul>
+<li>SDK 配置是否重复包含接口路径</li>
+<li>直接 HTTP 请求是否缺少接口路径</li>
+<li>平台是否支持当前 endpoint</li>
+<li>模型名称是否已经变更</li>
+</ul>
+<h3>400：请求格式或参数不受支持</h3>
+<p>可以先删除额外参数，只保留 <code>model</code> 和最简单的文本 <code>messages</code>。</p>
+<p>如果最小请求成功，再逐个添加其他参数，确认是哪一项不兼容。</p>
+<p>输入过长、消息格式错误，以及模型不支持的功能，也可能触发此类错误。</p>
+<h3>429：限流或配额不足</h3>
+<p>如果错误详情显示请求频率过高，可以降低并发、使用队列，并设置有限次数的退避重试。</p>
+<p>如果提示余额不足或配额耗尽，需要先处理账户额度，持续重试通常无效。</p>
+<h3>超时、500 或 502：检查网络与服务状态</h3>
+<p>这类问题可能来自连接异常、服务端故障或上游响应异常。</p>
+<p>建议记录请求时间、状态码和平台提供的请求 ID，便于定位问题。对可重试的临时错误设置有限重试，并关注重复请求可能产生的费用。</p>
+<hr />
+<h2>接入业务时，Gemini 模型怎么选</h2>
+<p>跑通接口后，下一步是选择适合业务的模型。</p>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>可以优先测试的模型方向</th>
+<th>重点比较</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>简单问答、分类、短摘要</td>
+<td>Flash 类模型</td>
+<td>速度、成本、准确率</td>
+</tr>
+<tr>
+<td>复杂分析、代码和长文理解</td>
+<td>Pro 类模型</td>
+<td>任务完成质量、响应耗时</td>
+</tr>
+<tr>
+<td>图片问答、截图分析</td>
+<td>支持图片输入的模型</td>
+<td>输入格式、识别效果</td>
+</tr>
+<tr>
+<td>大量批处理</td>
+<td>满足质量要求的低成本模型</td>
+<td>单位任务成本、限流情况</td>
+</tr>
+</tbody>
+</table>
+<p>这些是测试方向，具体表现取决于模型版本和实际任务。</p>
+<p>建议准备一组真实业务样例，记录回答质量、调用耗时和使用量，再决定使用哪个模型。不要只根据模型名称或宣传描述选择。</p>
+<hr />
+<h2>Gemini API 调用费用怎么计算</h2>
+<p>文本调用的费用通常与输入、输出 token 和模型单价有关。</p>
+<p>如果平台按百万 token 报价，可以按下面的方式估算：</p>
+<pre><code class="language-text">文本调用费用 ≈
+输入 token ÷ 1,000,000 × 输入单价
++
+输出 token ÷ 1,000,000 × 输出单价
+</code></pre>
+<p>实际计费还可能涉及缓存、推理 token、多模态内容或平台其他规则，应以对应价格说明为准。</p>
+<p>控制成本时，可以优先做三件事：</p>
+<ul>
+<li>只传当前任务需要的上下文，减少重复内容。</li>
+<li>根据任务限制回答长度，避免简单问题生成长文。</li>
+<li>用不同模型处理不同复杂度的任务。</li>
+</ul>
+<p>多轮对话尤其需要注意：如果每次都发送完整历史，后续请求的输入量可能不断增长。</p>
+<p>相关价格信息可以查看：</p>
+<ul>
+<li><a href="/pricing.html">价格说明</a></li>
+</ul>
+<hr />
+<h2>国内开发者选择 Gemini 中转 API，要看哪些信息</h2>
+<p>选择服务时，建议结合自己的部署环境做小规模测试，并确认：</p>
+<ul>
+<li>是否提供明确的接口文档和模型列表</li>
+<li>是否支持你的 SDK 与所需功能</li>
+<li>是否说明价格、限流和额度规则</li>
+<li>是否提供调用记录与使用量统计</li>
+<li>是否说明数据处理、日志保留和隐私政策</li>
+<li>是否能够从你的实际服务器环境正常访问</li>
+</ul>
+<p>基础文本调用成功之后，再验证流式输出、图片输入、工具调用等业务所需能力。</p>
+<p>对于涉及客户资料或内部文档的应用，还应根据平台的数据处理说明，判断哪些内容适合发送。</p>
+<hr />
+<h2>常见问题</h2>
+<h3>Gemini API 国内可以直接调用吗？</h3>
+<p>是否能够使用官方服务，需要结合其当前地区支持、账户要求和实际网络环境判断。</p>
+<p>通过中转平台调用时，则需要确认平台的服务条件、模型支持情况，以及你的服务器是否能够访问对应接口。</p>
+<h3>Gemini API 调用一定要用 Python 吗？</h3>
+<p>不需要。</p>
+<p>只要能够发送 HTTPS 请求，JavaScript、Java、Go、PHP 等语言都可以接入。本文使用 Python，是为了方便展示最小调用流程。</p>
+<h3>Gemini 中转 API 能用于智能客服吗？</h3>
+<p>可以作为客服系统的模型能力来源。</p>
+<p>实际应用还需要结合商品资料、业务规则、知识库检索和人工转接流程。API 提供模型能力，客服业务逻辑仍需要由你的系统实现。</p>
+<h3>Gemini API 支持图片理解吗？</h3>
+<p>需要选择支持图片输入的模型，并确认中转接口提供对应输入格式。</p>
+<p>本文的文本请求示例不能直接替代图片调用示例。</p>
+<h3>换 Gemini 模型需要重写代码吗？</h3>
+<p>在平台支持相同基础接口格式的情况下，简单文本请求通常可以通过修改模型 ID 进行测试。</p>
+<p>但模型支持的参数、输出效果和功能范围可能不同，上线前仍需验证。</p>
+<h3>调用成功后，为什么答案不符合预期？</h3>
+<p>接口成功表示请求完成，不代表回答已经满足业务要求。</p>
+<p>可以从提示词、输入资料、模型选择和输出格式要求入手改进，并用真实业务样例检查效果。</p>
+<hr />
+<h2>从最小请求开始接入 Gemini</h2>
+<p>完成一次 <strong>Gemini API 国内调用</strong>，可以按下面的顺序操作：</p>
+<ol>
+<li>获取中转平台提供的 API Key。</li>
+<li>确认完整接口地址或 SDK Base URL。</li>
+<li>从模型列表复制可用的 Gemini 模型 ID。</li>
+<li>使用 cURL 或 Python 发送最小文本请求。</li>
+<li>检查回复结构，再接入实际业务。</li>
+<li>增加超时处理、限流控制和费用记录。</li>
+</ol>
+<p>如果你的项目后续还要接入其他大模型，OpenAI 兼容中转接口可以帮助复用基础调用代码。模型的特殊能力与参数，则需要分别确认。</p>
+<p>你可以从以下入口查看大模型 API 中转服务：</p>
+<blockquote>
+<p><a href="https://quanzil.com">https://quanzil.com</a></p>
+<p><a href="https://quanzil.net">https://quanzil.net</a></p>
+</blockquote>
+</div>
+
+      <!-- 👇 Python 会识别并删除这个占位符，保持输出页面干净 -->
+      
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div>© <span id="current-year"></span> 保留所有权利</div>
+  </footer>
+
+  <script>
+    // Python 会替换这里的内容
+    const articleConfig = {
+  "title": "Gemini API 国内调用教程：接口地址、API Key 与 Python 示例",
+  "summary": "Gemini API 国内怎么调用？本文介绍通过大模型 API 中转站接入 Gemini 的方法，讲解 API Key、接口地址和模型名称配置，提供 cURL 与 Python 调用示例，并整理 401、404、429 和请求超时的排查方法。",
+  "author": "ai agent",
+  "published": "2026-10-14 00:00:00",
+  "canonical": "https://quanzil.com/articles/how-to-call-gpt-api-in-china.html",
+  "targetUrl": "https://quanzil.com/",
+  "targetLabel": "进入 API 中转站 →",
+  "siteName": "API ",
+  "siteTagline": "让技术更简单",
+  "brandMark": "AI",
+  "homeUrl": "https://quanzil.com/",
+  "articlesUrl": "https://quanzil.com/pricing",
+  "docsUrl": "https://docs.quanzil.com/",
+  "pricingUrl": "https://quanzil.com/news/focus"
+};
+
+    const formatDate = value => new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date(value));
+
+    // 填充顶部和导航信息
+    document.title = `${articleConfig.title}｜网站名称`;
+    document.getElementById('site-brand').href = articleConfig.homeUrl;
+    document.getElementById('brand-name').textContent = articleConfig.siteName;
+    document.getElementById('brand-tagline').textContent = articleConfig.siteTagline;
+    document.getElementById('brand-mark').textContent = articleConfig.brandMark;
+    document.getElementById('nav-home').href = articleConfig.homeUrl;
+    document.getElementById('nav-articles').href = articleConfig.articlesUrl;
+    document.getElementById('nav-docs').href = articleConfig.docsUrl;
+    document.getElementById('nav-pricing').href = articleConfig.pricingUrl;
+
+    // 填充文章 Meta 数据
+    document.getElementById('article-title').textContent = articleConfig.title;
+    document.getElementById('article-summary').textContent = articleConfig.summary;
+    document.getElementById('article-author').textContent = articleConfig.author;
+    const headerTarget = document.getElementById('header-target');
+    headerTarget.href = articleConfig.targetUrl;
+    headerTarget.textContent = articleConfig.targetLabel;
+
+    document.getElementById('publish-date').textContent = formatDate(articleConfig.published);
+    document.getElementById('publish-date').dateTime = articleConfig.published;
+
+    const updated = new Date();
+    const updateDate = updated.toISOString().slice(0, 10);
+    document.getElementById('update-date').textContent = formatDate(updateDate);
+    document.getElementById('update-date').dateTime = updateDate;
+    document.getElementById('current-year').textContent = updated.getFullYear();
+
+    // 构建结构化数据 (对百度/Google SEO 极其重要)
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: articleConfig.title,
+      description: articleConfig.summary,
+      author: { '@type': 'Person', name: articleConfig.author },
+      datePublished: articleConfig.published,
+      dateModified: updateDate,
+      mainEntityOfPage: { '@type': 'WebPage', '@id': articleConfig.canonical }
+    };
+    const schemaScript = document.createElement('script');
+    schemaScript.type = 'application/ld+json';
+    schemaScript.textContent = JSON.stringify(schema);
+    document.head.appendChild(schemaScript);
+  </script>
+</body>
+</html>
